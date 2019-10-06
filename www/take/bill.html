@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Giovanni Vella">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bill</title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/styleTake.css" />
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/main.js"></script>
+</head>
+
+<body>
+    <b>TAVOLO</b>
+    <p id="tableNumber"></p>
+    <br />
+    <hr />
+    <br />
+    Totale parz.
+    <p id="totalPart"></p>
+    <br />
+    Sconto
+    <input type="number" id="discountVal" value="0" onchange="updateDisc()" />
+    <br />
+    <br />
+    <b>Totale</b>
+    <p id="total"></p>
+    <br />
+    <input type="submit" onclick="printBill()" id="printBillBtn" value="Stampa" />
+    <script lang="javascript">
+        var table;
+        function loadMainInfo() {
+            $('#restName').html(getRestName());
+        }
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        function loadTable() {
+            var tableNumber = getParameterByName("tableNumber");
+            $('#tableNumber').html(tableNumber);
+            table = getTable(tableNumber);
+            var total = getTotal();
+            $("#totalPart").html("€" + total);
+            $("#total").html("€" + total);       
+        }
+
+        function getTotal(){
+            var total = table["Cover"] * getCoverPrice();
+            if ($("#discountVal").val() != 0 && isFinite($("#discountVal").val())) {
+                var discountObj = {};
+                discountObj.Id = -1;
+                discountObj.Name = "----SCONTO----";
+                discountObj.Quantity = 1;
+                discountObj.Price = ($("#discountVal").val()) * -1;
+                discountObj.Category = { Id: -1, Name: "Special" };
+                discountObj.Note = "";
+                table["Aliments"].push(discountObj);
+            }
+            for (var ali of table["Aliments"]) {
+                total += ali["Quantity"] * ali["Price"];
+            }
+            return total;
+        }
+
+        function updateDisc(){
+            table = getTable(getParameterByName("tableNumber"));
+            var total = getTotal();
+            $("#total").html("€" + total);
+        }
+
+        function printBill() {
+            printBillToThermal(table);
+        }
+
+        loadMainInfo();
+        loadTable();
+    </script>
+</body>
+
+</html>

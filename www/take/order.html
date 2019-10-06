@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Giovanni Vella">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Order</title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/styleOrder.css" />
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/main.js"></script>
+</head>
+
+<body>
+    <p class="title" id="restName"></p>
+
+    <div id="menuDiv">
+        <input type="button" id="menubtn" value="Nota" onclick="reqNote()">
+        <input type="button" id="menubtn" value="-------" onclick="sepOrd()">
+        <input type="button" id="menubtn" value="Avanti" onclick="nextBtn()">
+    </div>
+
+    <center>
+        <div id="loaderDiv" style="display: none">
+            <b>Invio ordine in corso</b>
+            <p class="loader"></p>
+        </div>
+    </center>
+
+    <div id="catsDiv" style="display: block">
+        <p id="catsText">Categorie</p>
+        <div id="catsBox">
+        </div>
+    </div>
+
+    <div id="alisDiv" style="display: none">
+        <p id="aliLog"></p>
+        <div id="alisBox">
+        </div>
+    </div>
+
+    <div id="orderDiv" style="display: none">
+        <p>Riepilogo</p>
+        <table id="orderTable"></table>
+        <br />
+        <hr />
+        <input type="submit" onclick="sendOrd(true)" id="printOrd" value="Stampa" />
+        <input type="submit" onclick="sendOrd(false)" id="saveOrd" value="Salva" />
+    </div>
+
+    <script lang="javascript">
+        var lastName = "";
+        var lastQuant = 1;
+        var note = null;
+        var canSepa = false;
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        function loadMainInfo() {
+            $('#restName').html(getRestName());
+        }
+
+        function goToCat(id) {
+            window.location = "order.html?cat=" + id + "&tableNumber=" + getParameterByName("tableNumber") + "&tableCover=" + getParameterByName("tableCover");
+        }
+
+        function loadCats() {
+            var cats = getAlimentCategories();
+            var catsBox = document.getElementById("catsBox");
+            for (var cat of cats) {
+                var input = document.createElement('input');
+                input.setAttribute("type", "button");
+                input.setAttribute("onclick", 'goToCat("' + cat["Id"] + '")');
+                input.setAttribute("value", cat["Name"]);
+                catsBox.appendChild(input);
+            }
+        }
+
+        function loadAlis(alis) {
+            var alisBox = document.getElementById("alisBox");
+            for (var ali of alis) {
+                var input = document.createElement('input');
+                input.setAttribute("type", "button");
+                input.setAttribute("onclick", 'addAli("' + ali["Name"] + '")');
+                input.setAttribute("value", ali["Name"]);
+                alisBox.appendChild(input);
+            }
+        }
+        function addAli(name) {
+            if (note != null) {
+                name += " | " + note;
+                note = null;
+            }
+            if (name != "-----------------------")
+                canSepa = true;
+
+            var oldCont = window.localStorage.getItem("tempOrder");
+            var saveSting = "1x" + name + ";";
+            var quant = 1;
+            if (name == lastName) {
+                quant += lastQuant;
+                oldCont = oldCont.replace(lastQuant + "x" + name + ";", quant + "x" + name + ";");
+                saveSting = "";
+                lastQuant++;
+            }
+            else {
+                lastName = name;
+                lastQuant = 1;
+            }
+            window.localStorage.setItem("tempOrder", oldCont + saveSting);
+            $('#aliLog').html(quant + " x " + name);
+        }
+
+        function reqNote() {
+            note = prompt("Inserisci l'opzione nota");
+        }
+
+        function deleteRow(btn) {
+            var row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            window.localStorage.setItem("tempOrder", tableToVar());
+        }
+
+        function quantChange() {
+            window.localStorage.setItem("tempOrder", tableToVar());
+        }
+
+        function genOrderTable() {
+            var orderTable = document.getElementById("orderTable");
+            var ords = window.localStorage.getItem("tempOrder").split(";");
+            var i = 0;
+            for (ord of ords) {
+                var quant = ord.split("x")[0];
+                var name = ord.split("x")[1];
+                if (name == null)
+                    continue;
+
+                var row = orderTable.insertRow(i++);
+                var cellQ = row.insertCell(0);
+                var cellName = row.insertCell(1);
+                var cellDel = row.insertCell(2);
+
+                cellQ.innerHTML = '<input type="number" value="' + quant + '" onchange="quantChange()"/>';
+                cellQ.setAttribute("class", "qTdBox");
+                cellName.innerHTML = name;
+                cellDel.innerHTML = "<input class=\"buttonDelAli\" type=\"image\" src=\"../img/Minus.png\" onclick=\"deleteRow(this)\" />";
+            }
+        }
+
+        function nextBtn() {
+            genOrderTable();
+            showDiv("orderDiv");
+        }
+
+        function sendOrd(print) {
+            if ($('#orderTable tr').length > 0) {
+                var tableNumber = getParameterByName("tableNumber");
+                var cover = getParameterByName("tableCover");
+                var alis = tableToVar();
+                var params = "table=" + tableNumber + "&alis=" + alis + "&cover=" + cover + "&print=" + print;
+                showDiv("loaderDiv");
+                var resp = postRequest("/restman/take/sendOrd.php", params);
+                setTimeout(function () {
+                    location.href = "index.html?num=" + tableNumber;
+                }, 1500);
+            } else {
+                alert("Ordine vuoto!");
+            }
+        }
+
+        function tableToVar() {
+            var rowCount = $('#orderTable tr').length;
+            var str = "";
+            var tbl = $('#orderTable');
+            for (var i = 0; i < rowCount; i++) {
+                var q = normalize($(tbl).find('tr').eq(i).find('td').eq(0).find('input').val());
+                var ord = normalize($(tbl).find('tr').eq(i).find('td').eq(1).text());
+                str = str + q + "x" + ord + ";";
+            }
+            return str;
+        }
+        function normalize(str) {
+            str = str.replace(/\s+/g, " ").replace(/^\s|\s$/g, "");
+            str = str.replace(/^\s+/, '');
+            for (var i = str.length - 1; i >= 0; i--) {
+                if (/\S/.test(str.charAt(i))) {
+                    str = str.substring(0, i + 1);
+                    break;
+                }
+            }
+            return str;
+        }
+
+        function sepOrd() {
+            if (canSepa) {
+                addAli("-----------------------");
+                canSepa = false;
+            }
+        }
+
+        function showDiv(divName) {
+            document.getElementById("loaderDiv").style.display = "none";
+            document.getElementById("catsDiv").style.display = "none";
+            document.getElementById("alisDiv").style.display = "none";
+            document.getElementById("orderDiv").style.display = "none";
+            document.getElementById(divName).style.display = "block";
+        }
+
+        loadMainInfo();
+        if (getParameterByName("cat") != null) {
+            var alis = getAlimentsFilterByCategoryId(getParameterByName("cat"));
+            loadAlis(alis);
+            showDiv("alisDiv");
+        }
+        else {
+            loadCats();
+        }
+    </script>
+</body>
+
+</html>

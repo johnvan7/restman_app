@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Giovanni Vella">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Take</title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/styleTake.css" />
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/main.js"></script>
+</head>
+
+<body>
+    <p class="title" id="restName">
+    </p>
+    <div id="meName"></div>
+    <br />
+    <hr />
+    <div id="main">
+        <b>TAVOLO</b>
+        <p id="tableNumber"></p>
+        Coperto
+        <br />
+        <input type="number" id="tableCover" placeholder="Coperto tavolo" autocomplete="off" required value="0" />
+        <br />
+        <hr />
+        <table id="table_alis">
+        </table>
+        <br />
+        <input type="button" value="AGGIUNGI" onclick="addAliUI()" />
+        <br />
+        <hr />
+        <br />
+        <input type="submit" onclick="printBill()" id="printBillBtn" value="Conto" />
+        <input type="submit" onclick="delTable()" id="delTableBtn" value="Elimina" />
+    </div>
+    <script lang="javascript">
+        function loadMainInfo() {
+            $('#restName').html(getRestName());
+            $('#meName').html(getMe()["Name"]);
+        }
+
+        function addAliUI() {
+            window.location = "order.html?tableNumber=" + $('#tableNumber').html() + "&tableCover=" + $('#tableCover').val();
+        }
+
+        function loadTableAlis(table) {
+            var table_alis = document.getElementById("table_alis");
+            var tableAlis = table["Aliments"];
+            var i = 0;
+            table_alis.innerHTML = "";
+            for (var ali of tableAlis) {
+                var row = table_alis.insertRow(i++);
+                var cellQ = row.insertCell(0);
+                var cellName = row.insertCell(1);
+
+                cellQ.innerHTML = ali["Quantity"];
+                cellQ.setAttribute("class", "qTdBox");
+                cellName.innerHTML = ali["Name"];
+                if (ali["Note"].length > 0)
+                    cellName.innerHTML += ali["Note"]; //TO-DO: check
+            }
+        }
+
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        function loadTable() {
+            window.localStorage.setItem("tempOrder", "");
+            var tableNumber = getParameterByName("num");
+            $('#tableNumber').html(tableNumber);
+            var table = getTable(tableNumber);
+            $('#tableCover').val(table["Cover"]);
+            loadTableAlis(table);
+        }
+
+        function printBill(){
+            window.location = "bill.html?tableNumber=" + $('#tableNumber').html();
+        }
+
+        function delTable(){
+            var tableNumber = $('#tableNumber').html();
+            var res = confirm("Vuoi eliminare il tavolo "+ tableNumber + "?");
+            if(res){
+                delTable(tableNumber);
+                window.location = "tables.html";
+            }
+        }
+
+        loadMainInfo();
+        loadTable();
+    </script>
+</body>
+
+</html>

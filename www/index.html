@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="author" content="Giovanni Vella">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Restman</title>
+            <link rel="stylesheet" type="text/css" href="css/style.css" />
+            <link rel="stylesheet" type="text/css" href="css/styleTake.css" />
+            <script src="js/jquery.min.js"></script>
+            <script src="js/main.js"></script>
+        </head>
+        <body>
+            <script lang="javascript">
+                var token = localStorage.getItem("token");
+                if(token==null){
+                    window.location = 'login/index.html';
+                }                    
+                else{
+                    window.location = 'take/tables.html';
+                }
+            </script>
+        </body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Giovanni Vella">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Restman login</title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <script src="../js/main.js"></script>
+</head>
+
+<body>
+    <p class="title">
+        Login
+    </p>
+    <br />
+    <a href="qr.html"><img src="../img/QRCode.png" width="15%" /></a>
+    <br />
+    <br />
+    <input type="text" id="host" placeholder="Host" required />
+    <br />
+    <input type="text" id="username" placeholder="Username" required />
+    <br />
+    <input type="password" id="password" placeholder="Password" required />
+    <br />
+    <br />
+    <input type="button" onclick="auth()" value="Login" />
+    <script lang="javascript">
+        function auth() {
+            var host = document.getElementById("host").value;
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            window.localStorage.setItem("host", host);
+            var token = login(username, password);
+            if(token!=null)
+                window.localStorage.setItem("token", token);
+            window.location = "../index.html";
+        }
+    </script>
+</body>
+
+</html>

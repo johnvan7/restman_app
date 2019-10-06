@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Giovanni Vella">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tables</title>
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/styleTables.css" />
+    <script src="../js/jquery.min.js"></script>
+    <script src="../js/main.js"></script>
+</head>
+
+<body>
+    <p class="title" id="restName"></p>
+    <p><b>TAVOLI</b></p>
+    <br />
+    <div id="tablesDiv">
+    </div>
+
+    <script lang="javascript">
+        function loadMainInfo() {
+            $('#restName').html(getRestName());
+        }
+
+        function goToTable(num) {
+            location.href = "index.html?num=" + num;
+        }
+
+        function loadTables() {
+            var tables = getTables();
+            var tablesDiv = document.getElementById("tablesDiv");
+            for (var i = 1; i <= 65; i++) {
+                var found = false;
+                var input = document.createElement('input');
+                input.setAttribute("type", "button");
+                input.setAttribute("onclick", 'goToTable(' + i +  ')');
+                input.setAttribute("value", i);
+                for (var table of tables) {
+                    var tableNum = table["Number"];
+                    if (tableNum == i.toString()) {
+                        input.setAttribute("style", "background-color: red;");
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    input.setAttribute("style", "background-color: #0077BE;");
+                }
+                tablesDiv.appendChild(input);
+            }
+        }
+
+        loadMainInfo();
+        loadTables();
+    </script>
+</body>
+
+</html>

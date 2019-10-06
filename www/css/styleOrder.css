@@ -1,0 +1,47 @@
+input[type=button], input[type=submit], input[type=reset] {
+    width: auto;
+    font-size: 100%;
+    font-weight: bold;
+    margin-left: 20px;
+    margin-top: 15px;
+    border: 2px solid #0077BE;
+}
+#catsText{
+    font-weight: bold;
+    font-size: 130%;
+}
+#menubtn{
+    font-size: 50%;
+    background-color: white;
+    color: #0077BE;
+    margin-left: 5px;
+    margin-top: 5px;
+}
+.buttonDelAli {
+    width: 30px;
+    border: 0px;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    text-align: left;
+    cursor: pointer;
+}
+.minusTdBox {
+    width: 35px;
+}
+.qTdBox {
+    width: 45px;
+}
+input[type=number] {
+    width: 80%;
+    padding: 0px 0px;
+    margin: 0px 0;
+    box-sizing: border-box;
+    border: none;
+    font-size: 100%;
+    text-align: center;
+    color: #005180;
+}
+input[type=number]:focus {
+    border: none;
+    font-weight: bold;
+}
